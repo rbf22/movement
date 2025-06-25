@@ -85,16 +85,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const preset = presets[this.value];
             if (preset) {
                 // Update form controls
-                document.getElementById('nodeCount').value = preset.nodeCount;
-                document.getElementById('nodeCountValue').textContent = preset.nodeCount;
+                // document.getElementById('nodeCount').value = preset.nodeCount; // Element does not exist
+                // document.getElementById('nodeCountValue').textContent = preset.nodeCount; // Element does not exist
                 document.getElementById('connectionDistance').value = preset.connectionDistance;
                 document.getElementById('connectionValue').textContent = preset.connectionDistance;
                 document.getElementById('animationSpeed').value = preset.animationSpeed;
                 document.getElementById('speedValue').textContent = preset.animationSpeed;
                 document.getElementById('particleSize').value = preset.particleSize;
                 document.getElementById('sizeValue').textContent = preset.particleSize;
-                document.getElementById('mixIntensity').value = preset.mixIntensity;
-                document.getElementById('mixValue').textContent = preset.mixIntensity;
+                // document.getElementById('mixIntensity').value = preset.mixIntensity; // Element does not exist
+                // document.getElementById('mixValue').textContent = preset.mixIntensity; // Element does not exist
                 document.getElementById('seedInput').value = preset.seed;
                 document.getElementById('backgroundColor').value = preset.backgroundColor;
                 document.getElementById('showTrails').checked = preset.effects.trails;
