@@ -59,27 +59,5 @@ echo "Playwright installation completed."
 echo "Verifying Playwright installation by checking version..."
 npx playwright --version
 
-# 4. Optional: Run Playwright tests if config and tests exist
-
-set +e  # Temporarily allow test failures
-
-if [ -f playwright.config.ts ] && [ -d tests ]; then
-  echo "Attempting to run Playwright tests as a final check..."
-  npx playwright test
-  TEST_EXIT_CODE=$?
-
-  if [ $TEST_EXIT_CODE -eq 0 ]; then
-    echo "Playwright test command executed successfully."
-  else
-    echo "Playwright test command exited with code $TEST_EXIT_CODE (this may be expected)."
-  fi
-else
-  echo "No 'playwright.config.ts' or 'tests' directory found, skipping test run."
-  echo "To fully test, ensure your Playwright project is configured and has tests."
-fi
-
-set -e  # Re-enable exit on error
-
 echo "--- Environment setup script finished ---"
-echo "If all steps completed without error, Playwright should be ready."
-echo "If 'npx playwright test' was run and failed, further debugging of the tests or web server configuration might be needed."
+echo "Playwright is installed and ready for use."
