@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPAM Client Collaboration Animation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/controls.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="debug">Loading...</div>
+    <div id="controls">
+        <button id="toggleBtn">Show Controls</button>
+        <div id="controlPanel" style="display: none;">
+            <!-- Control panel content here -->
+            <h3>Animation Settings</h3>
+            
+            <div class="control-group">
+                <label>Team 1 Name:</label>
+                <input type="text" id="team1Name" value="EPAM">
+            </div>
+            
+            <!-- More control elements -->
+            
+            <div class="control-group">
+                <h4>Animation Phases</h4>
+                <div id="phasesList"></div>
+                <button id="addPhaseBtn">Add Custom Phase</button>
+            </div>
+            
+            <button id="applyBtn">Apply Settings</button>
+        </div>
+    </div>
+
+    <!-- Load scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/shape-library.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/phase-definitions.js"></script>
+    <script src="js/animation-system.js"></script>
+    <script src="js/ui-controls.js"></script>
+</body>
+</html>

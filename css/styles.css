@@ -1,0 +1,18 @@
+body { 
+    margin: 0; 
+    overflow: hidden; 
+    background: black; 
+    font-family: Arial, sans-serif;
+}
+canvas { 
+    display: block; 
+}
+#debug { 
+    position: absolute; 
+    bottom: 10px; 
+    left: 10px; 
+    color: white; 
+    background: rgba(0,0,0,0.5);
+    padding: 5px;
+    z-index: 100;
+}
