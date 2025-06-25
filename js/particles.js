@@ -1,6 +1,5 @@
 // Particles Management
 
-// Create particles with deterministic positioning
 function createParticles() {
     // Reset random number generator for consistent results
     rng = new SeededRandom(config.seed);
@@ -9,47 +8,43 @@ function createParticles() {
     particles = [];
     shapeCache = {};
     
-    // Create team 1 particles (left side)
-    for (let i = 0; i < config.nodeCount; i++) {
-        particles.push({
-            x: canvas.width * 0.35 + (rng.next() - 0.5) * canvas.width * 0.2,
-            y: canvas.height * 0.5 + (rng.next() - 0.5) * canvas.height * 0.3,
-            radius: (3 + rng.next() * 5) * config.particleSize,
-            baseRadius: (3 + rng.next() * 5) * config.particleSize,
-            color: config.teams.team1.color,
-            team: 'team1',
-            index: i,
-            vx: (rng.next() - 0.5) * 0.5,
-            vy: (rng.next() - 0.5) * 0.5,
-            pulsePhase: rng.next() * Math.PI * 2,
-            trail: [],
-            originalX: 0,  // Will be set after positioning
-            originalY: 0,
-            targetX: 0,
-            targetY: 0
-        });
-    }
+    // Calculate positions based on team count
+    const teamCount = config.teams.length;
+    const angleStep = (2 * Math.PI) / teamCount;
     
-    // Create team 2 particles (right side)
-    for (let i = 0; i < config.nodeCount; i++) {
-        particles.push({
-            x: canvas.width * 0.65 + (rng.next() - 0.5) * canvas.width * 0.2,
-            y: canvas.height * 0.5 + (rng.next() - 0.5) * canvas.height * 0.3,
-            radius: (3 + rng.next() * 5) * config.particleSize,
-            baseRadius: (3 + rng.next() * 5) * config.particleSize,
-            color: config.teams.team2.color,
-            team: 'team2',
-            index: i + config.nodeCount,
-            vx: (rng.next() - 0.5) * 0.5,
-            vy: (rng.next() - 0.5) * 0.5,
-            pulsePhase: rng.next() * Math.PI * 2,
-            trail: [],
-            originalX: 0,  // Will be set after positioning
-            originalY: 0,
-            targetX: 0,
-            targetY: 0
-        });
-    }
+    // Create particles for each team
+    let particleIndexOffset = 0;
+    
+    config.teams.forEach((team, teamIndex) => {
+        // Calculate position for this team's cluster
+        const angle = angleStep * teamIndex;
+        const clusterX = canvas.width/2 + Math.cos(angle) * canvas.width * 0.25;
+        const clusterY = canvas.height/2 + Math.sin(angle) * canvas.height * 0.25;
+        
+        // Create particles for this team
+        for (let i = 0; i < team.particleCount; i++) {
+            particles.push({
+                x: clusterX + (rng.next() - 0.5) * canvas.width * 0.15,
+                y: clusterY + (rng.next() - 0.5) * canvas.height * 0.15,
+                radius: (3 + rng.next() * 5) * config.particleSize,
+                baseRadius: (3 + rng.next() * 5) * config.particleSize,
+                color: team.color,
+                teamId: team.id,
+                teamIndex: teamIndex,
+                index: particleIndexOffset + i,
+                vx: (rng.next() - 0.5) * 0.5,
+                vy: (rng.next() - 0.5) * 0.5,
+                pulsePhase: rng.next() * Math.PI * 2,
+                trail: [],
+                originalX: 0,
+                originalY: 0,
+                targetX: 0,
+                targetY: 0
+            });
+        }
+        
+        particleIndexOffset += team.particleCount;
+    });
     
     // Store original positions
     particles.forEach(particle => {

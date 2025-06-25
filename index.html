@@ -6,39 +6,356 @@
     <title>EPAM Client Collaboration Animation</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/controls.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div id="debug">Loading...</div>
+    
+    <!-- Control Panel with Tabs -->
     <div id="controls">
         <button id="toggleBtn">Show Controls</button>
         <div id="controlPanel" style="display: none;">
-            <!-- Control panel content here -->
-            <h3>Animation Settings</h3>
+            <h3 class="control-panel-title">Animation Settings</h3>
             
-            <div class="control-group">
-                <label>Team 1 Name:</label>
-                <input type="text" id="team1Name" value="EPAM">
+            <div class="tab-navigation">
+                <button class="tab-button" data-tab="teams">Teams</button>
+                <button class="tab-button active" data-tab="animation">Animation</button>
+                <button class="tab-button" data-tab="effects">Effects</button>
+                <button class="tab-button" data-tab="phases">Phases</button>
             </div>
             
-            <!-- More control elements -->
+            <!-- Teams Tab - New team management interface -->
+            <div id="teams-tab" class="tab-content">
+                <div class="section-header">Teams</div>
+                <div id="teamsList"></div>
+                <button id="addTeamBtn" class="action-button">
+                    <span class="icon">+</span> Add New Team
+                </button>
+            </div>
             
-            <div class="control-group">
-                <h4>Animation Phases</h4>
-                <div id="phasesList"></div>
-                <button id="addPhaseBtn">Add Custom Phase</button>
+            <!-- Animation Tab -->
+            <div id="animation-tab" class="tab-content active">
+                <div class="control-group">
+                    <label>Connection Distance: <span id="connectionValue">150</span></label>
+                    <input type="range" id="connectionDistance" min="50" max="300" value="150">
+                </div>
+                <div class="control-group">
+                    <label>Animation Speed: <span id="speedValue">1.0</span></label>
+                    <input type="range" id="animationSpeed" min="0.1" max="3" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label>Particle Size: <span id="sizeValue">1.0</span></label>
+                    <input type="range" id="particleSize" min="0.5" max="2.5" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label>Random Seed:</label>
+                    <input type="number" id="seedInput" value="12345">
+                </div>
+                <div class="control-group">
+                    <label>Cycle Duration (sec):</label>
+                    <input type="number" id="cycleDuration" min="10" max="120" value="60">
+                </div>
+            </div>
+            
+            <!-- Effects Tab -->
+            <div id="effects-tab" class="tab-content">
+                <div class="section-header">Visual Effects</div>
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showTrails" checked>
+                        <label for="showTrails">Show Trails</label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Trail Length: <span id="trailLengthValue">5</span></label>
+                    <input type="range" id="trailLength" min="1" max="20" value="5">
+                </div>
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showGlow" checked>
+                        <label for="showGlow">Particle Glow</label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showLabels" checked>
+                        <label for="showLabels">Show Team Labels</label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showPhaseInfo" checked>
+                        <label for="showPhaseInfo">Show Phase Info</label>
+                    </div>
+                </div>
+                <div class="section-header">Background</div>
+                <div class="control-group">
+                    <label>Background Color:</label>
+                    <input type="color" id="backgroundColor" value="#050505">
+                </div>
+            </div>
+            
+            <!-- Phases Tab -->
+            <div id="phases-tab" class="tab-content">
+                <div class="control-group">
+                    <div id="phasesList"></div>
+                    <div class="phase-actions">
+                        <button id="addPhaseBtn">Add Phase</button>
+                        <select id="phaseTypeSelect">
+                            <option value="formation">Formation</option>
+                            <option value="mixing">Mixing</option>
+                            <option value="return">Return</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="section-header">Presets</div>
+                <div class="control-group">
+                    <label>Animation Preset:</label>
+                    <select id="presetSelect">
+                        <option value="default">Default</option>
+                        <option value="energetic">Energetic</option>
+                        <option value="calm">Calm & Professional</option>
+                        <option value="creative">Creative</option>
+                        <option value="technical">Technical</option>
+                    </select>
+                </div>
             </div>
             
             <button id="applyBtn">Apply Settings</button>
         </div>
     </div>
 
-    <!-- Load scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/shape-library.js"></script>
-    <script src="js/particles.js"></script>
-    <script src="js/phase-definitions.js"></script>
-    <script src="js/animation-system.js"></script>
-    <script src="js/ui-controls.js"></script>
+    <!-- Phase Editor Modal -->
+    <div id="phaseEditorModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Phase: <span id="phaseEditorTitle">Phase Name</span></h3>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="editor-group">
+            <label>Phase Title:</label>
+            <input type="text" id="phaseTitle" placeholder="Phase Title">
+          </div>
+          <div class="editor-group">
+            <label>Description:</label>
+            <input type="text" id="phaseDescription" placeholder="Description">
+          </div>
+          <div class="editor-group">
+            <label>Duration (% of cycle):</label>
+            <input type="range" id="phaseDuration" min="5" max="30" value="15">
+            <span id="phaseDurationValue">15%</span>
+          </div>
+          
+          <div class="phase-specific-params">
+            <!-- These fields will change based on phase type -->
+          </div>
+          
+          <div class="editor-group" id="mixIntensityGroup">
+            <label>Mix Intensity:</label>
+            <input type="range" id="phaseMixIntensity" min="0.5" max="5" step="0.1" value="2.5">
+            <span id="phaseMixIntensityValue">2.5</span>
+          </div>
+          
+          <div class="editor-group">
+            <label>Particle Size Multiplier:</label>
+            <input type="range" id="phaseParticleSize" min="0.5" max="2.5" step="0.1" value="1.0">
+            <span id="phaseParticleSizeValue">1.0</span>
+          </div>
+          
+          <div class="editor-group" id="mixingStrategyGroup">
+            <label>Team Mixing Strategy:</label>
+            <select id="phaseMixingStrategy">
+              <option value="segregated">Segregated Teams</option>
+              <option value="alternating">Alternating (ABABAB)</option>
+              <option value="random">Random Mix</option>
+              <option value="percentage">Percentage Mix</option>
+            </select>
+          </div>
+          
+          <div class="editor-group" id="mixPercentageGroup" style="display: none;">
+            <label>Mix Percentage:</label>
+            <input type="range" id="phaseMixPercentage" min="0" max="100" value="50">
+            <span id="phaseMixPercentageValue">50%</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="phaseEditorCancel">Cancel</button>
+          <button id="phaseEditorSave">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts omitted for brevity but same as before -->
+    
+    <!-- Additional Modal Styles -->
+    <style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #111;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: white;
+            border: 1px solid #39C2D7;
+        }
+        
+        .modal-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #39C2D7;
+        }
+        
+        .close-modal {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: white;
+        }
+        
+        .modal-body {
+            padding: 15px;
+        }
+        
+        .editor-group {
+            margin-bottom: 15px;
+        }
+        
+        .modal-footer {
+            padding: 15px;
+            text-align: right;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .modal-footer button {
+            margin-left: 10px;
+        }
+        
+        /* Team management styles */
+        .team-item {
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 5px;
+        }
+        
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .team-name-input {
+            flex: 1;
+            margin-right: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 5px;
+            color: white;
+        }
+        
+        .team-color-input {
+            width: 40px;
+            height: 30px;
+            border: none;
+            background: none;
+        }
+        
+        .team-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .team-count-input {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .remove-team-btn {
+            background: rgba(255,0,0,0.5);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .remove-team-btn:hover {
+            background: rgba(255,0,0,0.8);
+        }
+        
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: rgba(57, 194, 215, 0.3);
+        }
+        
+        .action-button .icon {
+            margin-right: 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        /* Phase list styling enhancements */
+        .phase-item {
+            position: relative;
+        }
+        
+        .phase-item .phase-type {
+            font-size: 11px;
+            color: #aaa;
+            margin-left: 5px;
+        }
+        
+        .phase-controls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .phase-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        #phaseTypeSelect {
+            flex: 1;
+        }
+        
+        .duplicate-phase-btn {
+            background: rgba(57, 194, 215, 0.3);
+        }
+    </style>
 </body>
 </html>

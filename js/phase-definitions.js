@@ -1,3 +1,187 @@
+// Phase types registry with default parameters
+const phaseTypes = {
+    formation: {
+        title: "Formation",
+        description: "Teams form geometric patterns",
+        defaultDuration: 0.15,
+        parameters: {
+            particleSizeMultiplier: 1.0,
+            mixingStrategy: "segregated",
+            formationType: "circle"
+        },
+        allowedStrategies: ["segregated", "alternating", "random", "percentage"]
+    },
+    mixing: {
+        title: "Dynamic Mixing",
+        description: "Teams move dynamically and mix",
+        defaultDuration: 0.15,
+        parameters: {
+            mixIntensity: 2.5,
+            particleSizeMultiplier: 1.0
+        }
+    },
+    return: {
+        title: "Return to Origin",
+        description: "Teams return to starting positions",
+        defaultDuration: 0.15,
+        parameters: {
+            particleSizeMultiplier: 1.0,
+            returnStyle: "direct"
+        }
+    }
+};
+
+// Open phase editor modal
+function openPhaseEditor(phaseIndex) {
+    const phase = AnimationPhases.phases[phaseIndex];
+    
+    // Populate editor fields with phase data
+    document.getElementById('phaseEditorTitle').textContent = phase.title;
+    document.getElementById('phaseTitle').value = phase.title;
+    document.getElementById('phaseDescription').value = phase.description;
+    document.getElementById('phaseDuration').value = Math.round(phase.duration * 100);
+    document.getElementById('phaseDurationValue').textContent = `${Math.round(phase.duration * 100)}%`;
+    
+    // Show/hide and populate phase-specific parameters
+    updatePhaseEditorFields(phase);
+    
+    // Show the modal
+    document.getElementById('phaseEditorModal').style.display = 'flex';
+    
+    // Store the phase index for later
+    document.getElementById('phaseEditorModal').dataset.phaseIndex = phaseIndex;
+}
+
+// Add event listeners for phase editor
+document.addEventListener('DOMContentLoaded', function() {
+    // Phase duration slider
+    document.getElementById('phaseDuration').addEventListener('input', function() {
+        document.getElementById('phaseDurationValue').textContent = `${this.value}%`;
+    });
+    
+    // Mix intensity slider
+    document.getElementById('phaseMixIntensity').addEventListener('input', function() {
+        document.getElementById('phaseMixIntensityValue').textContent = this.value;
+    });
+    
+    // Particle size slider
+    document.getElementById('phaseParticleSize').addEventListener('input', function() {
+        document.getElementById('phaseParticleSizeValue').textContent = this.value;
+    });
+    
+    // Mix percentage slider
+    document.getElementById('phaseMixPercentage').addEventListener('input', function() {
+        document.getElementById('phaseMixPercentageValue').textContent = `${this.value}%`;
+    });
+    
+    // Mixing strategy change
+    document.getElementById('phaseMixingStrategy').addEventListener('change', function() {
+        if (this.value === 'percentage') {
+            document.getElementById('mixPercentageGroup').style.display = 'block';
+        } else {
+            document.getElementById('mixPercentageGroup').style.display = 'none';
+        }
+    });
+    
+    // Save button
+    document.getElementById('phaseEditorSave').addEventListener('click', savePhaseChanges);
+    
+    // Cancel button
+    document.getElementById('phaseEditorCancel').addEventListener('click', function() {
+        document.getElementById('phaseEditorModal').style.display = 'none';
+    });
+    
+    // Close button
+    document.querySelector('.close-modal').addEventListener('click', function() {
+        document.getElementById('phaseEditorModal').style.display = 'none';
+    });
+    
+    // Add phase button
+    document.getElementById('addPhaseBtn').addEventListener('click', function() {
+        const phaseType = document.getElementById('phaseTypeSelect').value;
+        const newPhase = createPhase(phaseType);
+        if (newPhase) {
+            AnimationPhases.phases.push(newPhase);
+            AnimationPhases.initialize();
+            updatePhasesList();
+        }
+    });
+});
+
+// Function to update phases list in control panel
+function updatePhasesList() {
+    const phasesList = document.getElementById('phasesList');
+    if (!phasesList) return;
+    
+    phasesList.innerHTML = '';
+    
+    AnimationPhases.phases.forEach((phase, index) => {
+        const phaseElem = document.createElement('div');
+        phaseElem.className = 'phase-item';
+        
+        phaseElem.innerHTML = `
+            <div class="phase-header">
+                <span class="phase-title">${phase.title}</span>
+                <span class="phase-type">(${phase.type || 'unknown'})</span>
+                <span class="phase-duration">${Math.round(phase.duration * 100)}%</span>
+            </div>
+            <div class="phase-controls">
+                <button class="edit-phase-btn" data-index="${index}">Edit</button>
+                <button class="duplicate-phase-btn" data-index="${index}">Duplicate</button>
+                ${AnimationPhases.phases.length > 2 ? `<button class="remove-phase-btn" data-index="${index}">Remove</button>` : ''}
+                ${index > 0 ? `<button class="move-up-btn" data-index="${index}">↑</button>` : ''}
+                ${index < AnimationPhases.phases.length - 1 ? `<button class="move-down-btn" data-index="${index}">↓</button>` : ''}
+            </div>
+        `;
+        
+        phasesList.appendChild(phaseElem);
+    });
+    
+    // Add event listeners for phase controls
+    document.querySelectorAll('.edit-phase-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            openPhaseEditor(parseInt(this.dataset.index));
+        });
+    });
+    
+    document.querySelectorAll('.duplicate-phase-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            const newPhase = duplicatePhase(AnimationPhases.phases[index]);
+            AnimationPhases.phases.splice(index + 1, 0, newPhase);
+            AnimationPhases.initialize();
+            updatePhasesList();
+        });
+    });
+    
+    document.querySelectorAll('.remove-phase-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to remove this phase?')) {
+                AnimationPhases.phases.splice(parseInt(this.dataset.index), 1);
+                AnimationPhases.initialize();
+                updatePhasesList();
+            }
+        });
+    });
+    
+    // Add move up/down functionality
+    document.querySelectorAll('.move-up-btn, .move-down-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            const direction = this.classList.contains('move-up-btn') ? -1 : 1;
+            
+            if ((direction === -1 && index > 0) || 
+                (direction === 1 && index < AnimationPhases.phases.length - 1)) {
+                const temp = AnimationPhases.phases[index];
+                AnimationPhases.phases[index] = AnimationPhases.phases[index + direction];
+                AnimationPhases.phases[index + direction] = temp;
+                AnimationPhases.initialize();
+                updatePhasesList();
+            }
+        });
+    });
+}
+
 // Phase Management System
 const AnimationPhases = {
     // Configuration
